@@ -12,6 +12,7 @@ namespace GlassBongoCat
         private readonly CatOptions options;
         private readonly NativeInput input;
         private readonly CatArtwork artwork;
+        private readonly CatKeyboard keyboard=new CatKeyboard();
         private readonly GlassMaterial[] materials=new GlassMaterial[4];
         private readonly WriteableBitmap[] glass=new WriteableBitmap[4],fallback=new WriteableBitmap[4];
         private readonly BitmapSource[] lightInk=new BitmapSource[4];
@@ -61,7 +62,9 @@ namespace GlassBongoCat
                 // Original Bongo Cat sprites provide the raised / tapping paws.
                 // Holding a key holds the corresponding paw, with a short tail
                 // from the transient input heat so very short taps stay visible.
-                pose=(left?1:0)|(right?2:0);
+                // The source names paws from the cat's point of view. Match
+                // the visible left/right keyboard halves from the viewer's side.
+                pose=(left?2:0)|(right?1:0);
             }
             bool allowed=!options.RecordingMode&&!SystemParameters.HighContrast;
             if(!allowed&&backdrop!=null)ClearCapture();
@@ -126,7 +129,7 @@ namespace GlassBongoCat
         protected override void OnRender(DrawingContext drawing){Draw(drawing);}
         internal void Draw(DrawingContext drawing)
         {
-            artwork.DrawBase(drawing);
+            keyboard.Draw(drawing,input,!paused&&options.InputEnabled);
             drawing.DrawImage(fallback[pose],artwork.BodyBounds);
             if(backdrop!=null&&!options.RecordingMode&&!SystemParameters.HighContrast)
             {

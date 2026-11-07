@@ -26,6 +26,8 @@
 
 `CatArtwork.cs` 只读取上述像素资源。玻璃材质、桌面采样和 Windows 呈现是本项目实现；未引入 Bongo Cat 的 SFML/Live2D 运行时，也未使用 Steam 版的程序或素材。
 
+0.1.1 起，实际显示的键盘改为 `CatKeyboard.cs` 绘制的完整紧凑矢量键盘，带浅色键帽、深色字和按键反馈。原 `desk-ink.png` 保留为来源素材，但不再作为运行时的键盘显示层。
+
 显示时会由 `CatInkTreatment.SoftenOuterInk` 对原线条做一次可复现的处理：查找距离 alpha 遮罩外部不超过 6 个原图像素的中性黑灰线，将这些像素的 alpha 乘以 0.22，使玻璃边缘更易辨认。眼睛、嘴位于内部，不会被减弱；彩色粉爪垫明确排除在此处理之外。该处理仅改变缓存中的派生显示位图，以上原 PNG、原始 ink 和 `GetInk()` 返回内容均保留。`assets/GlassBongoCat.ico` 由 [MakeIcon.cs](MakeIcon.cs) 从原 mask/ink 生成，包含透明的 16、32、48、256 像素图层。
 
 如需重建派生 PNG，可用 .NET Framework 的 C# 编译器编译 `ExtractArtwork.cs`，引用 `System.Drawing.dll`，然后传入 `source` 目录与输出目录两个参数。输出目录会同时生成 `original-poses.png` 供逐姿势核对；此联系表不需要嵌入程序。

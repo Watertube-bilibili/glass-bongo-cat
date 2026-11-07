@@ -4,6 +4,8 @@
 
 本项目的猫身体轮廓、眼睛、嘴、粉色爪垫、左右爪姿势、斜桌沿及键盘来自 [MMmmmoko/Bongo-Cat-Mver](https://github.com/MMmmmoko/Bongo-Cat-Mver)，固定提交 [`4da0b9468ad3b6ffaa096eba3f080501d6ab0b5c`](https://github.com/MMmmmoko/Bongo-Cat-Mver/tree/4da0b9468ad3b6ffaa096eba3f080501d6ab0b5c)。具体使用 `BongoCatMver/img/keyboard/bg.png`、`lefthand/leftup.png`、`lefthand/0.png`、`righthand/rightup.png`、`righthand/0.png`。
 
+从 0.1.1 开始，运行时的完整紧凑键盘由本项目 `CatKeyboard.cs` 重新绘制，替换了只有透明底线稿的桌沿/按键显示层；原桌沿和简化按键素材仍保留在源码中用于来源记录。猫身体和四种爪部姿态继续使用以上原版美术。
+
 原 PNG、逐文件校验记录与可复现的派生过程保留在 [assets/cat](assets/cat/SOURCE.md)。本项目从原像素提取 alpha 和线条，替换白色填充为实时玻璃；程序图标也是这些原像素的缩放和着色派生物。来源仓库在上述提交的 [LICENSE](https://github.com/MMmmmoko/Bongo-Cat-Mver/blob/4da0b9468ad3b6ffaa096eba3f080501d6ab0b5c/LICENSE) 为以下 MIT 文本，原版权保留：
 
 为显出玻璃厚度，运行时只将原遮罩外缘 6 像素内的中性黑灰描边 alpha 调低至 22%；原眼睛、嘴与彩色粉爪垫保持原样。处理方法保留在 `CatInkTreatment.cs`，原始素材及原始线条资源没有覆盖。

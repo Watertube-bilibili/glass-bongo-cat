@@ -18,6 +18,7 @@ internal static class IntegrationTests
         var app=new Application {ShutdownMode=ShutdownMode.OnExplicitShutdown};CatWindow cat=null;
         try
         {
+            VerifyKeyboard();
             CatArtwork art=CatArtwork.Load();
             Check(art.MaskWidth>250&&art.MaskHeight>150,"Original cat crop is unexpectedly small");
             for(int pose=0;pose<4;pose++)
@@ -49,11 +50,11 @@ internal static class IntegrationTests
             cat.Surface.TestRight=false;
             cat.DiagnosticMode=false;options.InputEnabled=true;cat.Input.Enabled=true;
             MethodInfo setKey=typeof(NativeInput).GetMethod("SetKey",BindingFlags.Instance|BindingFlags.NonPublic);
-            setKey.Invoke(cat.Input,new object[]{65,true});cat.Surface.Update(1.06,.016,false,false);Check(cat.Surface.Pose==1,"A key does not drive the left original paw");
+            setKey.Invoke(cat.Input,new object[]{65,true});cat.Surface.Update(1.06,.016,false,false);Check(cat.Surface.Pose==2,"A key does not drive the paw over the left keyboard half");
             setKey.Invoke(cat.Input,new object[]{76,true});cat.Surface.Update(1.08,.016,false,false);Check(cat.Surface.Pose==3,"L key does not drive the right original paw");
             cat.Input.Enabled=false;cat.Input.Enabled=true;
             setKey.Invoke(cat.Input,new object[]{161,true});setKey.Invoke(cat.Input,new object[]{16,true});
-            cat.Surface.Update(1.09,.016,false,false);Check(cat.Surface.Pose==2,"Right Shift incorrectly drives both paws through its generic VK");
+            cat.Surface.Update(1.09,.016,false,false);Check(cat.Surface.Pose==1,"Right Shift must drive only the paw over the right keyboard half");
             cat.Input.Enabled=false;options.InputEnabled=false;cat.DiagnosticMode=true;
             cat.Surface.Update(1.1,.016,false,false);Check(cat.Surface.Pose==0,"Disabling input leaves a stuck paw");
             if(activeDesktop)
@@ -92,6 +93,45 @@ internal static class IntegrationTests
         }
         catch(Exception error){Console.Error.WriteLine(error);return 1;}
         finally{if(cat!=null)cat.Dispose();app.Shutdown();}
+    }
+    private static void VerifyKeyboard()
+    {
+        var keyboard=new CatKeyboard();
+        using(var input=new NativeInput())
+        {
+            Check(keyboard.KeyCount>=50,"Keyboard is missing its full compact key layout");
+            Point a=new Point(),l=new Point(),space=new Point(),rightShift=new Point();
+            Check(keyboard.TryGetKeyCenter(65,out a)&&keyboard.TryGetKeyCenter(76,out l),"Letter key mapping");
+            Check(keyboard.TryGetKeyCenter(32,out space)&&keyboard.TryGetKeyCenter(161,out rightShift),"Space/right Shift mapping");
+            byte[] idle=KeyboardPixels(keyboard,input,true);
+            foreach(Point p in new[]{a,l,space,rightShift})
+            {
+                Check(p.X>=0&&p.X<612&&p.Y>=0&&p.Y<354,"Key is clipped outside the pet window");
+                Check(idle[((int)p.Y*612+(int)p.X)*4+3]>240,"Keycaps are transparent and disappear into the desktop");
+            }
+            var setKey=typeof(NativeInput).GetMethod("SetKey",BindingFlags.Instance|BindingFlags.NonPublic);
+            setKey.Invoke(input,new object[]{65,true});
+            byte[] pressed=KeyboardPixels(keyboard,input,true);
+            Check(PatchDifference(idle,pressed,a)>100,"A key has no visible pressed feedback");
+            Check(PatchDifference(idle,pressed,l)==0,"A incorrectly lights the unrelated L key");
+            Check(PatchDifference(idle,KeyboardPixels(keyboard,input,false),a)==0,"Pause retains a lit key");
+            input.Enabled=false;
+            Check(PatchDifference(idle,KeyboardPixels(keyboard,input,true),a)==0,"Disabling input leaves a stuck key");
+            Console.WriteLine("Keyboard visible keycaps / exact key feedback / pause and reset checks passed.");
+        }
+    }
+    private static byte[] KeyboardPixels(CatKeyboard keyboard,NativeInput input,bool enabled)
+    {
+        var drawing=new DrawingVisual();using(var d=drawing.RenderOpen())keyboard.Draw(d,input,enabled);
+        var frame=new RenderTargetBitmap(612,354,96,96,PixelFormats.Pbgra32);frame.Render(drawing);
+        byte[] pixels=new byte[612*354*4];frame.CopyPixels(pixels,612*4,0);return pixels;
+    }
+    private static long PatchDifference(byte[] before,byte[] after,Point point)
+    {
+        long difference=0;
+        for(int y=(int)point.Y-5;y<=(int)point.Y+5;y++)for(int x=(int)point.X-5;x<=(int)point.X+5;x++)
+            for(int channel=0;channel<4;channel++){int i=(y*612+x)*4+channel;difference+=Math.Abs(before[i]-after[i]);}
+        return difference;
     }
     private static Point Interior(CatArtwork art,bool right)
     {
