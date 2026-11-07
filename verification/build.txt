@@ -1,0 +1,10 @@
+PASS: 397124 mask/optics assertions; visible shoulder bend=26 px at 190 px.
+Runtime session active=False; Windows 会话已锁定，桌面采样与绘制已暂停。
+PASS 2614 session-state / stable-capture-geometry assertions; no actual session state was changed.
+SKIP live desktop capture / edge / protected-window checks: Windows 会话已锁定，桌面采样与绘制已暂停。
+PASS 29 integration assertions: original cat/paws, local input state, capture mode and window lifecycle; live desktop checks=SKIPPED (inactive/locked session). No global input injected.
+
+Algorithm : SHA256
+Hash      : 9FBD3D019D47581DAABB4BEC15A001E92E535F37F01EA60DC0B15F2A4AE3553E
+Path      : D:\glass pet\glass-bongo-cat\dist\GlassBongoCat.exe
+

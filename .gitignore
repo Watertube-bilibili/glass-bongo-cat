@@ -1,0 +1,10 @@
+dist/
+artifacts/
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.tmp
+settings.xml
+last-error.txt

@@ -1,0 +1,2 @@
+Live desktop diagnostic skipped: Windows 会话已锁定，桌面采样与绘制已暂停。
+No normal-desktop FPS result was measured. Unlock normally and rerun this diagnostic.
