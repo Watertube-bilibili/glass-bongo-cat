@@ -27,6 +27,11 @@ if(-not $SkipTests){
     if($LASTEXITCODE -ne 0){throw 'Material tests compilation failed.'}
     & $optics
     if($LASTEXITCODE -ne 0){throw 'Material tests failed.'}
+    $keyboardTests=Join-Path $projectRoot 'artifacts\KeyboardGlassTests.exe'
+    & $compiler /nologo /optimize+ /target:exe ('/out:'+$keyboardTests) (Join-Path $projectRoot 'src\KeyboardGlass.cs') (Join-Path $projectRoot 'tests\KeyboardGlassTests.cs')
+    if($LASTEXITCODE -ne 0){throw 'Keyboard material test compilation failed.'}
+    & $keyboardTests
+    if($LASTEXITCODE -ne 0){throw 'Keyboard material tests failed.'}
     $session=Join-Path $projectRoot 'artifacts\DesktopSessionStateTests.exe'
     & $compiler /nologo /codepage:65001 /optimize+ /target:exe ('/out:'+$session) @references (Join-Path $projectRoot 'src\DesktopSessionState.cs') (Join-Path $projectRoot 'src\AsyncDesktopBackdrop.cs') (Join-Path $projectRoot 'src\BackdropFrame.cs') (Join-Path $projectRoot 'src\NativeCaptureSupport.cs') (Join-Path $projectRoot 'tests\DesktopSessionStateTests.cs')
     if($LASTEXITCODE -ne 0){throw 'Session/geometry tests compilation failed.'}

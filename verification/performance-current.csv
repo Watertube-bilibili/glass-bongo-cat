@@ -1,0 +1,3 @@
+version,size_logical,dpi_scale,pixel_width,pixel_height,warmup_seconds,elapsed_seconds,presented_frames,present_fps,full_frame_mean_ms,full_frame_p95_ms,full_frame_max_ms,captured_frames,capture_fps,refraction_checks,refraction_missing,managed_bytes_before,managed_bytes_after,private_bytes_before,private_bytes_after,gc0,gc1,gc2,opacity,status
+"current",200.000,1.500,300.000,174.000,2.000,6.031,305.000,50.568,12.963,18.025,37.976,204.000,33.823,305.000,0.000,71563136.000,45119552.000,161005568.000,159481856.000,5.000,5.000,5.000,0.001,VALID
+"current",300.000,1.500,450.000,261.000,2.000,6.034,188.000,31.155,20.285,26.546,35.316,184.000,30.492,188.000,0.000,59378072.000,40388728.000,163409920.000,163614720.000,4.000,4.000,4.000,0.001,VALID

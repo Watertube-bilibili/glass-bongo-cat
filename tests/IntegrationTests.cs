@@ -50,11 +50,11 @@ internal static class IntegrationTests
             cat.Surface.TestRight=false;
             cat.DiagnosticMode=false;options.InputEnabled=true;cat.Input.Enabled=true;
             MethodInfo setKey=typeof(NativeInput).GetMethod("SetKey",BindingFlags.Instance|BindingFlags.NonPublic);
-            setKey.Invoke(cat.Input,new object[]{65,true});cat.Surface.Update(1.06,.016,false,false);Check(cat.Surface.Pose==2,"A key does not drive the paw over the left keyboard half");
+            setKey.Invoke(cat.Input,new object[]{65,true});cat.Surface.Update(1.06,.016,false,false);Check(cat.Surface.Pose==1,"A key must follow the cat-facing keyboard's visible right half");
             setKey.Invoke(cat.Input,new object[]{76,true});cat.Surface.Update(1.08,.016,false,false);Check(cat.Surface.Pose==3,"L key does not drive the right original paw");
             cat.Input.Enabled=false;cat.Input.Enabled=true;
             setKey.Invoke(cat.Input,new object[]{161,true});setKey.Invoke(cat.Input,new object[]{16,true});
-            cat.Surface.Update(1.09,.016,false,false);Check(cat.Surface.Pose==1,"Right Shift must drive only the paw over the right keyboard half");
+            cat.Surface.Update(1.09,.016,false,false);Check(cat.Surface.Pose==2,"Right Shift must follow the cat-facing keyboard's visible left half");
             cat.Input.Enabled=false;options.InputEnabled=false;cat.DiagnosticMode=true;
             cat.Surface.Update(1.1,.016,false,false);Check(cat.Surface.Pose==0,"Disabling input leaves a stuck paw");
             if(activeDesktop)
@@ -103,11 +103,17 @@ internal static class IntegrationTests
             Point a=new Point(),l=new Point(),space=new Point(),rightShift=new Point();
             Check(keyboard.TryGetKeyCenter(65,out a)&&keyboard.TryGetKeyCenter(76,out l),"Letter key mapping");
             Check(keyboard.TryGetKeyCenter(32,out space)&&keyboard.TryGetKeyCenter(161,out rightShift),"Space/right Shift mapping");
+            Check(a.X>l.X,"Original keyboard orientation must face the cat, not only rotate the legends");
+            keyboard.Configure(false,true);Point reversedA;keyboard.TryGetKeyCenter(65,out reversedA);Check(reversedA.X<a.X,"Viewer orientation did not rotate the full key layout");
+            keyboard.Configure(true,true);
+            var fixture=new BackdropFrame(612,354){ScreenBounds=new Rect(0,0,612,354)};
+            for(int y=0;y<354;y++)for(int x=0;x<612;x++){int i=(y*612+x)*4;fixture.Pixels[i]=(byte)(x%256);fixture.Pixels[i+1]=(byte)(y%256);fixture.Pixels[i+2]=128;fixture.Pixels[i+3]=255;}
+            keyboard.RenderBackdrop(fixture,CatKeyboard.Bounds,1.65,1.1,.98,1.35);Check(keyboard.HasRefraction,"Keyboard did not use the shared captured background");
             byte[] idle=KeyboardPixels(keyboard,input,true);
             foreach(Point p in new[]{a,l,space,rightShift})
             {
                 Check(p.X>=0&&p.X<612&&p.Y>=0&&p.Y<354,"Key is clipped outside the pet window");
-                Check(idle[((int)p.Y*612+(int)p.X)*4+3]>240,"Keycaps are transparent and disappear into the desktop");
+                Check(idle[((int)p.Y*612+(int)p.X)*4+3]>240,"Live glass keycap does not contain the refracted source");
             }
             var setKey=typeof(NativeInput).GetMethod("SetKey",BindingFlags.Instance|BindingFlags.NonPublic);
             setKey.Invoke(input,new object[]{65,true});
@@ -117,6 +123,13 @@ internal static class IntegrationTests
             Check(PatchDifference(idle,KeyboardPixels(keyboard,input,false),a)==0,"Pause retains a lit key");
             input.Enabled=false;
             Check(PatchDifference(idle,KeyboardPixels(keyboard,input,true),a)==0,"Disabling input leaves a stuck key");
+            input.Enabled=true;setKey.Invoke(input,new object[]{1,true});
+            byte[] mousePressed=KeyboardPixels(keyboard,input,true);
+            Check(PatchDifference(idle,mousePressed,new Point(110,260))>100,"Mouse left button has no independent feedback");
+            input.Enabled=false;keyboard.ClearBackdrop();
+            byte[] transparent=KeyboardPixels(keyboard,input,false);int minimumAlpha=255;
+            for(int yy=(int)space.Y-3;yy<=(int)space.Y+3;yy++)for(int xx=(int)space.X-3;xx<=(int)space.X+3;xx++)minimumAlpha=Math.Min(minimumAlpha,transparent[(yy*612+xx)*4+3]);
+            Check(minimumAlpha<150,"Recording/protected fallback is an opaque keyboard instead of glass");
             Console.WriteLine("Keyboard visible keycaps / exact key feedback / pause and reset checks passed.");
         }
     }

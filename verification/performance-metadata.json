@@ -1,0 +1,298 @@
+{
+  "movingSeconds": 6,
+  "utc": "2026-11-07T15:03:10.7341365Z",
+  "warmupSeconds": 2,
+  "opacity": 0.001,
+  "sizes": [
+    200,
+    300
+  ],
+  "baselineCommit": "86602b9586bf854f4038532d8129f3e7cd670b99",
+  "runnerSha256": "01BCC57D5990B7030AE205EDDAA96CF36CAE2B88618E77AC239825299901138C",
+  "inputInjected": false,
+  "stages": [
+    {
+      "stage": "Baseline",
+      "label": "v0.1.1",
+      "sourceRoot": "D:\\glass pet\\glass-bongo-cat\\artifacts\\baseline-v0.1.1",
+      "exeSha256": "4874738EDF924474C7E1448F9556315B3878273D72F2D06914E05FA585F21181",
+      "sourceHashes": [
+        {
+          "file": "src\\App.cs",
+          "sha256": "E4FBEE5245F81FB73A2BD36425CB353E6903A11F8283F3E381AD8D0ED2F4989E"
+        },
+        {
+          "file": "src\\AssemblyInfo.cs",
+          "sha256": "90F12B854E3D2549586894A051AAB42871F37529BBD1462406EF730A69986B6D"
+        },
+        {
+          "file": "src\\AsyncDesktopBackdrop.cs",
+          "sha256": "F28F601EA732B19E7431E0B965D70B9F4D21282C6E54CA4F2687EA6601C9A27B"
+        },
+        {
+          "file": "src\\BackdropFrame.cs",
+          "sha256": "CEC6410B7114D20A5C595E8B5CA505231677A8E024CA7AFA40BF624A93877AD8"
+        },
+        {
+          "file": "src\\BackdropOcclusion.cs",
+          "sha256": "2806F4AE81BFC0A23C1467C7D33AF3DD1A324C6FF602DCF3A2FAB022DB0F4706"
+        },
+        {
+          "file": "src\\CatArtwork.cs",
+          "sha256": "F4094A4D0CA3D2E47A6B3870DC7C238DA24AE696A43AF2C08C215AA5572158B5"
+        },
+        {
+          "file": "src\\CatInkTreatment.cs",
+          "sha256": "E417EB836227D67E18E8ECAD70EF3014A74B2E5F0BCC39B5A25A730A2A9B11A4"
+        },
+        {
+          "file": "src\\CatKeyboard.cs",
+          "sha256": "7B73363F16795EF4915D9E1C3BFF5DF4F0B49B929ECA8FC3C22E9D6633A043C5"
+        },
+        {
+          "file": "src\\CatOptions.cs",
+          "sha256": "AA596F28ACDDDCC22872F0747714ABC4850FC45F19BC6BACD6E1567E7434C080"
+        },
+        {
+          "file": "src\\CatSurface.cs",
+          "sha256": "2BC81F30173747447F8B7DD2865C61D7C14D10B20F50413595B24820B68DECCD"
+        },
+        {
+          "file": "src\\CatWindow.cs",
+          "sha256": "DA2C9ADC425BF85940C01B1D6388D9E668FBA6FFEA56C3606F5885898169D44B"
+        },
+        {
+          "file": "src\\DampedValue.cs",
+          "sha256": "A5E233D66998BD491305E9DB633F4AEEADFC592D635462BA04FD29591CD4F90F"
+        },
+        {
+          "file": "src\\DesktopSessionState.cs",
+          "sha256": "B8BB3DD05A27F9EE8EDDA2F7BED77CCD8176493A25B19BF5372196E1B2B8BC2C"
+        },
+        {
+          "file": "src\\FrameClock.cs",
+          "sha256": "B47524D7D0CB28D602B8D321B1BC1102711AA948B215C4D7476E8393B4C57840"
+        },
+        {
+          "file": "src\\GlassMaterial.cs",
+          "sha256": "B28DAB89A7AD62CF9EF809167CD0756D3BD4B021E8B9AD9DF1FD9E42E0D33B61"
+        },
+        {
+          "file": "src\\NativeCaptureSupport.cs",
+          "sha256": "89EF6F71DFA5F57F4696F9B5E370A4FE9B1185A6D43B05D8838B93F9DA6D839C"
+        },
+        {
+          "file": "src\\NativeInput.cs",
+          "sha256": "4E9CC566CF143F50F185158536DD633629CCAF1D30EE1B54401E54643EC06A55"
+        },
+        {
+          "file": "src\\NativeLayerWindow.cs",
+          "sha256": "956E0C969733FFA6046B9AC5A809A5FE6623C68C7586B7DEEA88092CC7C1AB51"
+        },
+        {
+          "file": "src\\SettingsWindow.cs",
+          "sha256": "578DCCBD07A80520624477BE61D0F4B8C1D15617C55CD1D3DBDFECFF249139FE"
+        },
+        {
+          "file": "assets\\cat\\body-ink-0.png",
+          "sha256": "6FDA45F1BFD8B5ED94D8738ED7551B0BE4A53345397B0DAD90EF7A3E0FB377C3"
+        },
+        {
+          "file": "assets\\cat\\body-ink-1.png",
+          "sha256": "C1AD4DF9D6D42BA4F28AAF6452FAF82769D66A51791229823B7762BA5CEC33EE"
+        },
+        {
+          "file": "assets\\cat\\body-ink-2.png",
+          "sha256": "06B8EC59AE74AB9E9841ECD85373405F214C1A5E6114830A8090C80B7FC69353"
+        },
+        {
+          "file": "assets\\cat\\body-ink-3.png",
+          "sha256": "1B64AEF40FFFA9B4C7C6A668D5816C9DB61C58435005AE6E8C14003B425134D9"
+        },
+        {
+          "file": "assets\\cat\\body-mask-0.png",
+          "sha256": "C68D9A8EF8B9AA4FA01E9C88D3C6F5B84CDF9694BADE048706F2A1CF272D2501"
+        },
+        {
+          "file": "assets\\cat\\body-mask-1.png",
+          "sha256": "3865ED009B9AE9E84D48FC9C44AA7FFEDF12051360F28131798DB48A49599882"
+        },
+        {
+          "file": "assets\\cat\\body-mask-2.png",
+          "sha256": "6FC7001C7F62BD8F939AEE34506104D3C69B9D830B3C881672B7B37FA6919AAF"
+        },
+        {
+          "file": "assets\\cat\\body-mask-3.png",
+          "sha256": "1742BF6DB98416FC10476913223DF545A1780EABD2BD7F2875806ECDB338C18F"
+        },
+        {
+          "file": "assets\\cat\\desk-ink.png",
+          "sha256": "42913E58553B37FE192368F369D549CEFD5F6B130281F1B100CD6C94DEFF7135"
+        },
+        {
+          "file": "assets\\cat\\geometry.txt",
+          "sha256": "8289BFA77DADAC78FBD6DEAC45EC6203ED0953E51719CE9687832F127613F283"
+        },
+        {
+          "file": "assets\\cat\\LICENSE-MIT.txt",
+          "sha256": "62E58711F5307D819A2F445F9C6993E0C5CA0F907036D56C8FFD435AD50B0CC1"
+        },
+        {
+          "file": "THIRD_PARTY_NOTICES.md",
+          "sha256": "FA0F058BFBF2CD42CD57BED4A553825E51A128D9C4C90C240B0C7A5AD0EBF703"
+        },
+        {
+          "file": "src\\app.manifest",
+          "sha256": "A13A4F24517FF6E9ECA0ACEA8711649B94AE66BDC18721319850A86438DDDAB5"
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "stage": "Current",
+      "label": "current",
+      "sourceRoot": "D:\\glass pet\\glass-bongo-cat",
+      "exeSha256": "278E9AA2F6F31051DF69E9DA50665348CF9295BA8FBF35B08A4101FD7FE20140",
+      "sourceHashes": [
+        {
+          "file": "src\\App.cs",
+          "sha256": "E4FBEE5245F81FB73A2BD36425CB353E6903A11F8283F3E381AD8D0ED2F4989E"
+        },
+        {
+          "file": "src\\AssemblyInfo.cs",
+          "sha256": "0455DA597EFA4FF6CAB6683D6FA202B97507F45CE88353B6D7FE886419E954FC"
+        },
+        {
+          "file": "src\\AsyncDesktopBackdrop.cs",
+          "sha256": "F28F601EA732B19E7431E0B965D70B9F4D21282C6E54CA4F2687EA6601C9A27B"
+        },
+        {
+          "file": "src\\BackdropFrame.cs",
+          "sha256": "CEC6410B7114D20A5C595E8B5CA505231677A8E024CA7AFA40BF624A93877AD8"
+        },
+        {
+          "file": "src\\BackdropOcclusion.cs",
+          "sha256": "2806F4AE81BFC0A23C1467C7D33AF3DD1A324C6FF602DCF3A2FAB022DB0F4706"
+        },
+        {
+          "file": "src\\CatArtwork.cs",
+          "sha256": "F4094A4D0CA3D2E47A6B3870DC7C238DA24AE696A43AF2C08C215AA5572158B5"
+        },
+        {
+          "file": "src\\CatInkTreatment.cs",
+          "sha256": "E417EB836227D67E18E8ECAD70EF3014A74B2E5F0BCC39B5A25A730A2A9B11A4"
+        },
+        {
+          "file": "src\\CatKeyboard.cs",
+          "sha256": "1263814CD9A84F31DEE69A97CFC357CD557626E3823F55EE1FDA7F5F0CF5E514"
+        },
+        {
+          "file": "src\\CatMouse.cs",
+          "sha256": "84D36EDD423990BD93AE8744CAEA8557117F16BB6A2EFDCC43D4334BD0114E2D"
+        },
+        {
+          "file": "src\\CatOptions.cs",
+          "sha256": "8ACCA8579A0F970C247C2B8A015E001BF9CB511EF9D5FAE335F62B4C278F77EA"
+        },
+        {
+          "file": "src\\CatSurface.cs",
+          "sha256": "68162BD41F8E60AC334332E22871360DB745FC2F0024F46B49F88F808086DE68"
+        },
+        {
+          "file": "src\\CatWindow.cs",
+          "sha256": "DA2C9ADC425BF85940C01B1D6388D9E668FBA6FFEA56C3606F5885898169D44B"
+        },
+        {
+          "file": "src\\DampedValue.cs",
+          "sha256": "A5E233D66998BD491305E9DB633F4AEEADFC592D635462BA04FD29591CD4F90F"
+        },
+        {
+          "file": "src\\DesktopSessionState.cs",
+          "sha256": "B8BB3DD05A27F9EE8EDDA2F7BED77CCD8176493A25B19BF5372196E1B2B8BC2C"
+        },
+        {
+          "file": "src\\FrameClock.cs",
+          "sha256": "B47524D7D0CB28D602B8D321B1BC1102711AA948B215C4D7476E8393B4C57840"
+        },
+        {
+          "file": "src\\GlassMaterial.cs",
+          "sha256": "B28DAB89A7AD62CF9EF809167CD0756D3BD4B021E8B9AD9DF1FD9E42E0D33B61"
+        },
+        {
+          "file": "src\\KeyboardGlass.cs",
+          "sha256": "30A9399ABB80D289C16FE9BBD490F7078A6C48E558BA3E2E108DA3FD33F5915B"
+        },
+        {
+          "file": "src\\NativeCaptureSupport.cs",
+          "sha256": "89EF6F71DFA5F57F4696F9B5E370A4FE9B1185A6D43B05D8838B93F9DA6D839C"
+        },
+        {
+          "file": "src\\NativeInput.cs",
+          "sha256": "4E9CC566CF143F50F185158536DD633629CCAF1D30EE1B54401E54643EC06A55"
+        },
+        {
+          "file": "src\\NativeLayerWindow.cs",
+          "sha256": "956E0C969733FFA6046B9AC5A809A5FE6623C68C7586B7DEEA88092CC7C1AB51"
+        },
+        {
+          "file": "src\\SettingsWindow.cs",
+          "sha256": "F8275888EBEBEC8A5DA5D22E1B15575394EE619E22492181B6A3C3767442BEC6"
+        },
+        {
+          "file": "assets\\cat\\body-ink-0.png",
+          "sha256": "6FDA45F1BFD8B5ED94D8738ED7551B0BE4A53345397B0DAD90EF7A3E0FB377C3"
+        },
+        {
+          "file": "assets\\cat\\body-ink-1.png",
+          "sha256": "C1AD4DF9D6D42BA4F28AAF6452FAF82769D66A51791229823B7762BA5CEC33EE"
+        },
+        {
+          "file": "assets\\cat\\body-ink-2.png",
+          "sha256": "06B8EC59AE74AB9E9841ECD85373405F214C1A5E6114830A8090C80B7FC69353"
+        },
+        {
+          "file": "assets\\cat\\body-ink-3.png",
+          "sha256": "1B64AEF40FFFA9B4C7C6A668D5816C9DB61C58435005AE6E8C14003B425134D9"
+        },
+        {
+          "file": "assets\\cat\\body-mask-0.png",
+          "sha256": "C68D9A8EF8B9AA4FA01E9C88D3C6F5B84CDF9694BADE048706F2A1CF272D2501"
+        },
+        {
+          "file": "assets\\cat\\body-mask-1.png",
+          "sha256": "3865ED009B9AE9E84D48FC9C44AA7FFEDF12051360F28131798DB48A49599882"
+        },
+        {
+          "file": "assets\\cat\\body-mask-2.png",
+          "sha256": "6FC7001C7F62BD8F939AEE34506104D3C69B9D830B3C881672B7B37FA6919AAF"
+        },
+        {
+          "file": "assets\\cat\\body-mask-3.png",
+          "sha256": "1742BF6DB98416FC10476913223DF545A1780EABD2BD7F2875806ECDB338C18F"
+        },
+        {
+          "file": "assets\\cat\\desk-ink.png",
+          "sha256": "42913E58553B37FE192368F369D549CEFD5F6B130281F1B100CD6C94DEFF7135"
+        },
+        {
+          "file": "assets\\cat\\geometry.txt",
+          "sha256": "8289BFA77DADAC78FBD6DEAC45EC6203ED0953E51719CE9687832F127613F283"
+        },
+        {
+          "file": "assets\\cat\\LICENSE-MIT.txt",
+          "sha256": "62E58711F5307D819A2F445F9C6993E0C5CA0F907036D56C8FFD435AD50B0CC1"
+        },
+        {
+          "file": "THIRD_PARTY_NOTICES.md",
+          "sha256": "A29A8E04BE89B73BE0168E586D8652DAF05430AAD0AF4D26D90C81F865ED461A"
+        },
+        {
+          "file": "src\\app.manifest",
+          "sha256": "B4654800BF000CCB969EA8E90260AE2318A052B965977F0ED17D9A81C8B57360"
+        }
+      ],
+      "exitCode": 0
+    }
+  ],
+  "screenshotsSaved": false
+}

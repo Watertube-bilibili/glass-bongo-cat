@@ -1,12 +1,13 @@
 PASS: 397124 mask/optics assertions; visible shoulder bend=26 px at 190 px.
+PASS: 423391 keyboard mask/refraction/cache assertions; 61 keys share one map.
 Runtime session active=True; 
 PASS 2614 session-state / stable-capture-geometry assertions; no actual session state was changed.
 Keyboard visible keycaps / exact key feedback / pause and reset checks passed.
-Edge checks=180; lost refraction=0
+Edge checks=176; lost refraction=0
 Protected overlap alpha=6; ordinary glass alpha=255
-PASS 47 integration assertions: original cat/paws, local input state, capture mode and window lifecycle; live desktop checks=executed. No global input injected.
+PASS 52 integration assertions: original cat/paws, local input state, capture mode and window lifecycle; live desktop checks=executed. No global input injected.
 
 Algorithm : SHA256
-Hash      : 8B344844B04BF0F74F276681C66706FF62B76877287321B16C56357662DD3271
+Hash      : E612244B51149545A1B21BE4A6DE81019E48D02E4666D56B31C9F7A72184D1B9
 Path      : D:\glass pet\glass-bongo-cat\dist\GlassBongoCat.exe
 

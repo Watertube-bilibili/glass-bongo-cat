@@ -10,6 +10,8 @@ namespace GlassBongoCat
         public double Highlight = 1.1;
         public double Clarity = .98;
         public bool InputEnabled = true;
+        public bool KeyboardFacesCat = true;
+        public bool ShowMouse = true;
         public bool ReducedMotion;
         public bool RecordingMode;
         public bool ClickThrough;

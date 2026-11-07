@@ -23,8 +23,9 @@ internal static class CreatePreview
         {
             int pose=f<8?0:f<14?2:f<20?0:f<26?1:3;
             input.Enabled=false;input.Enabled=true;
-            if((pose&2)!=0)setKey.Invoke(input,new object[]{65,true});
-            if((pose&1)!=0)setKey.Invoke(input,new object[]{76,true});
+            if((pose&1)!=0)setKey.Invoke(input,new object[]{65,true});
+            if((pose&2)!=0)setKey.Invoke(input,new object[]{76,true});
+            if(f>=28)setKey.Invoke(input,new object[]{1,true});
             var background=new DrawingVisual();
             using(var d=background.RenderOpen())
             {
@@ -37,6 +38,8 @@ internal static class CreatePreview
             }
             var source=new RenderTargetBitmap(612,354,96,96,PixelFormats.Pbgra32);source.Render(background);
             var bytes=new byte[612*354*4];source.CopyPixels(bytes,612*4,0);
+            var backdrop=new BackdropFrame(612,354){ScreenBounds=new Rect(0,0,612,354)};Buffer.BlockCopy(bytes,0,backdrop.Pixels,0,bytes.Length);
+            keyboard.RenderBackdrop(backdrop,CatKeyboard.Bounds,1.65,1.1,.98,1.35);
             material[pose].Render(bytes,612,354,612*4,art.BodyBounds.X,art.BodyBounds.Y,1,1,1.65,1.1,.98,1.35);
             var crystal=BitmapSource.Create(art.MaskWidth,art.MaskHeight,96,96,PixelFormats.Pbgra32,null,material[pose].Pixels,art.MaskWidth*4);
             var drawing=new DrawingVisual();
@@ -46,7 +49,7 @@ internal static class CreatePreview
                 d.DrawImage(crystal,art.BodyBounds);d.DrawImage(inks[pose],art.BodyBounds);
             }
             var frame=new RenderTargetBitmap(612,354,96,96,PixelFormats.Pbgra32);frame.Render(drawing);
-            if(f==0){Save(frame,"verification/glass-bongo-cat-preview.png");Save(frame,"verification/glass-bongo-cat-0.1.1.png");}
+            if(f==0){Save(frame,"verification/glass-bongo-cat-preview.png");Save(frame,"verification/glass-bongo-cat-0.1.2.png");}
             if(f==26)Save(frame,"verification/keyboard-pressed.png");
             var metadata=new BitmapMetadata("gif");metadata.SetQuery("/grctlext/Delay",(ushort)8);
             gif.Frames.Add(BitmapFrame.Create(frame,null,metadata,null));
@@ -57,9 +60,17 @@ internal static class CreatePreview
         {
             for(int panel=0;panel<2;panel++)
             {
+                var fixture=new BackdropFrame(612,354){ScreenBounds=new Rect(0,0,612,354)};
+                for(int y=0;y<354;y++)for(int x=0;x<612;x++)
+                {int i=(y*612+x)*4;byte shade=(byte)(panel==0?((x/24+y/24)%2==0?240:205):((x/24+y/24)%2==0?25:65));fixture.Pixels[i]=fixture.Pixels[i+1]=fixture.Pixels[i+2]=shade;fixture.Pixels[i+3]=255;}
+                keyboard.RenderBackdrop(fixture,CatKeyboard.Bounds,1.65,1.1,.98,1.35);
                 d.DrawRectangle(panel==0?Brushes.WhiteSmoke:new SolidColorBrush(Color.FromRgb(19,23,29)),null,new Rect(panel*520,0,520,174));
                 d.DrawText(new FormattedText(panel==0?"LIGHT DESKTOP":"DARK DESKTOP",CultureInfo.InvariantCulture,FlowDirection.LeftToRight,new Typeface("Segoe UI Semibold"),10,panel==0?Brushes.DimGray:Brushes.LightGray,1),new Point(panel*520+16,8));
-                d.PushTransform(new TranslateTransform(panel*520-30,-180));keyboard.Draw(d,input,false);d.Pop();
+                var ground=BitmapSource.Create(612,354,96,96,PixelFormats.Pbgra32,null,fixture.Pixels,612*4);
+                var panelDrawing=new DrawingVisual();using(var pd=panelDrawing.RenderOpen()){pd.DrawImage(ground,new Rect(0,0,612,354));keyboard.Draw(pd,input,false);}
+                var panelBitmap=new RenderTargetBitmap(612,354,96,96,PixelFormats.Pbgra32);panelBitmap.Render(panelDrawing);panelBitmap.Freeze();
+                d.PushClip(new RectangleGeometry(new Rect(panel*520,24,520,150)));
+                d.PushTransform(new TranslateTransform(panel*520-30,-180));d.DrawImage(panelBitmap,new Rect(0,0,612,354));d.Pop();d.Pop();
             }
         }
         var comparison=new RenderTargetBitmap(1040,174,96,96,PixelFormats.Pbgra32);comparison.Render(contrast);Save(comparison,"verification/keyboard-contrast.png");

@@ -50,21 +50,24 @@ namespace GlassBongoCat
         }
         internal void Pat() { }
         internal void ResetTouch(){pressed=false;}
-        internal void ClearCapture(){capture.Stop();backdrop=null;opacity=0;}
+        internal void ClearCapture(){capture.Stop();backdrop=null;opacity=0;keyboard.ClearBackdrop();}
         internal void Update(double now,double dt,bool isPaused,bool moving)
         {
             paused=isPaused;int previous=pose;
+            keyboard.Configure(options.KeyboardFacesCat,options.ShowMouse);
+            keyboard.SetPixelScale(owner.Scale*owner.DpiScale);
             if(owner.DiagnosticMode)pose=(TestLeft?1:0)|(TestRight?2:0);
             else if(paused||!options.InputEnabled)pose=0;
             else
             {
-                bool left=input.LeftButton||HandActive(true),right=input.RightButton||HandActive(false);
+                bool left=HandActive(true),right=HandActive(false);
                 // Original Bongo Cat sprites provide the raised / tapping paws.
                 // Holding a key holds the corresponding paw, with a short tail
                 // from the transient input heat so very short taps stay visible.
                 // The source names paws from the cat's point of view. Match
                 // the visible left/right keyboard halves from the viewer's side.
-                pose=(left?2:0)|(right?1:0);
+                pose=options.KeyboardFacesCat?((left?1:0)|(right?2:0)):((left?2:0)|(right?1:0));
+                if(input.LeftButton||input.RightButton)pose|=options.ShowMouse?2:(input.LeftButton?2:1);
             }
             bool allowed=!options.RecordingMode&&!SystemParameters.HighContrast;
             if(!allowed&&backdrop!=null)ClearCapture();
@@ -72,7 +75,7 @@ namespace GlassBongoCat
             if(allowed&&(moving||now-lastRequest>.045))
             {
                 lastRequest=now;
-                capture.Request(owner.Handle,ScreenBounds());
+                capture.Request(owner.Handle,ScreenBounds(CaptureBounds()));
             }
             if(allowed)
             {
@@ -80,10 +83,15 @@ namespace GlassBongoCat
                 if(capture.TryGetSnapshot(out ready)){backdrop=ready;lastReceived=now;fresh=true;}
                 double target=backdrop!=null&&now-lastReceived<.4?1:0;
                 opacity+=(target-opacity)*(1-Math.Exp(-14*dt));
-                if(backdrop!=null&&now-lastReceived>1&&opacity<.005){backdrop=null;opacity=0;}
+                if(backdrop!=null&&now-lastReceived>1&&opacity<.005){backdrop=null;opacity=0;keyboard.ClearBackdrop();}
             }
             RefreshFallback(pose);
-            if(backdrop!=null&&(fresh||moving||pose!=previous))RenderGlass();
+            keyboard.RefreshFallback(options.Highlight,options.Clarity,options.Thickness);
+            if(backdrop!=null&&(fresh||moving||pose!=previous||!keyboard.HasRefraction))
+            {
+                RenderGlass();
+                if(fresh||moving||!keyboard.HasRefraction)keyboard.RenderBackdrop(backdrop,ScreenBounds(CatKeyboard.Bounds),options.Refraction,options.Highlight,options.Clarity,options.Thickness);
+            }
             InvalidateVisual();
         }
         private bool HandActive(bool left)
@@ -98,7 +106,10 @@ namespace GlassBongoCat
             return false;
         }
         private Rect ScreenBounds()
-        {return new Rect(owner.SurfaceToScreen(artwork.BodyBounds.TopLeft),owner.SurfaceToScreen(artwork.BodyBounds.BottomRight));}
+        {return ScreenBounds(artwork.BodyBounds);}
+        private Rect ScreenBounds(Rect bounds)
+        {return new Rect(owner.SurfaceToScreen(bounds.TopLeft),owner.SurfaceToScreen(bounds.BottomRight));}
+        private Rect CaptureBounds(){return Rect.Union(artwork.BodyBounds,CatKeyboard.Bounds);}
         private void RefreshFallback(int p)
         {
             GlassMaterial material=materials[p];material.RenderFallback(options.Highlight,options.Clarity,options.Thickness);
@@ -118,7 +129,7 @@ namespace GlassBongoCat
         }
         private Geometry VisibleCaptureRegion()
         {
-            Rect screen=ScreenBounds(),local=artwork.BodyBounds;var regions=occlusion.GetRegions(owner.Handle,screen);
+            Rect local=CaptureBounds(),screen=ScreenBounds(local);var regions=occlusion.GetRegions(owner.Handle,screen);
             if(regions.Count==0)return null;
             var mask=new GeometryGroup {FillRule=FillRule.Nonzero};
             foreach(Rect region in regions)
@@ -129,11 +140,12 @@ namespace GlassBongoCat
         protected override void OnRender(DrawingContext drawing){Draw(drawing);}
         internal void Draw(DrawingContext drawing)
         {
-            keyboard.Draw(drawing,input,!paused&&options.InputEnabled);
+            Geometry visible=backdrop!=null?VisibleCaptureRegion():null;
+            keyboard.Draw(drawing,input,!paused&&options.InputEnabled,opacity,visible);
             drawing.DrawImage(fallback[pose],artwork.BodyBounds);
             if(backdrop!=null&&!options.RecordingMode&&!SystemParameters.HighContrast)
             {
-                Geometry visible=VisibleCaptureRegion();if(visible!=null)drawing.PushClip(visible);
+                if(visible!=null)drawing.PushClip(visible);
                 drawing.PushOpacity(opacity);drawing.DrawImage(glass[pose],artwork.BodyBounds);drawing.Pop();
                 if(visible!=null)drawing.Pop();
             }

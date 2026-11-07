@@ -31,6 +31,8 @@ namespace GlassBongoCat
             Button(presets,"标准",delegate{sizeSlider.Value=300;});
             Button(presets,"放大",delegate{sizeSlider.Value=400;});panel.Children.Add(presets);
             Toggle(panel,"跟着键盘、鼠标敲爪子",options.InputEnabled,delegate(bool v){options.InputEnabled=v;});
+            Toggle(panel,"键盘朝向猫咪（原版朝向）",options.KeyboardFacesCat,delegate(bool v){options.KeyboardFacesCat=v;});
+            Toggle(panel,"显示玻璃鼠标",options.ShowMouse,delegate(bool v){options.ShowMouse=v;});
             Toggle(panel,"点击穿透",options.ClickThrough,delegate(bool v){options.ClickThrough=v;});
             Toggle(panel,"录屏可见（透明高光，无桌面折射）",options.RecordingMode,delegate(bool v){options.RecordingMode=v;});
             panel.Children.Add(new TextBlock {Text="拖动猫咪移动位置 · 双击打开设置\n右键或托盘可隐藏、暂停和退出",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,16,0,8),Foreground=ColorBrush(94,111,119)});

@@ -3,184 +3,175 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace GlassBongoCat
 {
-    // Original vector keyboard, independent of the licensed cat artwork. All
-    // housing, keycap and text geometry is constructed once and frozen.
+    // One optical atlas covers the case, keys and mouse; lettering stays sharp above it.
     internal sealed class CatKeyboard
     {
-        private sealed class Key
+        private sealed class Key { internal int Code,Alternate; internal Point Center; internal Rect Bounds; internal DrawingGroup ActiveDark,ActiveLight; internal BitmapSource DarkBitmap,LightBitmap; }
+        internal static readonly Rect Bounds=new Rect(48,190,510,164);
+        private const int TextureWidth=340,TextureHeight=110;
+        private readonly List<Key> keys=new List<Key>();
+        private readonly CatMouse mouse=new CatMouse();
+        private readonly WriteableBitmap glass=new WriteableBitmap(TextureWidth,TextureHeight,96,96,PixelFormats.Pbgra32,null);
+        private readonly WriteableBitmap fallback=new WriteableBitmap(TextureWidth,TextureHeight,96,96,PixelFormats.Pbgra32,null);
+        private DrawingGroup light,dark,housingMask,keysMask;
+        private Transform plane;
+        private BitmapSource lightBitmap,darkBitmap;
+        private double pixelScale=1;
+        private KeyboardGlass optics;
+        private bool facesCat,showMouse,configured,hasGlass;
+        private int fallbackVersion=-1;
+        private static readonly Typeface Face=new Typeface(new FontFamily("Segoe UI"),FontStyles.Normal,FontWeights.SemiBold,FontStretches.Normal);
+        internal int KeyCount {get{return keys.Count;}}
+        internal bool HasRefraction {get{return hasGlass;}}
+        internal bool FacesCat {get{return facesCat;}}
+        internal CatKeyboard(){Configure(true,true);}
+        internal void Configure(bool catFacing,bool mouseVisible)
         {
-            internal int Code, Alternate;
-            internal Point Center;
-            internal DrawingGroup Active;
-        }
-
-        private readonly List<Key> keys = new List<Key>();
-        private readonly DrawingGroup idle;
-        private readonly MatrixTransform plane;
-        private static readonly Typeface Face = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
-        private static readonly Brush Cap = Brush(255, 253, 254, 255);
-        private static readonly Brush ModifierCap = Brush(255, 233, 238, 244);
-        private static readonly Brush Ink = Brush(255, 34, 44, 58);
-        private static readonly Brush KeySide = Brush(255, 159, 171, 187);
-        private static readonly Brush ActiveCap = Brush(255, 177, 214, 255);
-        private static readonly Brush ActiveInk = Brush(255, 18, 69, 132);
-        private static readonly Pen CapBorder = Pen(Brush(255, 192, 202, 215), .65);
-        private static readonly Pen ActiveBorder = Pen(Brush(255, 67, 139, 227), 1);
-        internal int KeyCount { get { return keys.Count; } }
-
-        internal CatKeyboard()
-        {
-            // Same diagonal as the original desktop, with a shallow foreshortening.
-            // Full footprint, including the raised front lip: x64..519, y195..348.
-            plane = new MatrixTransform(new Matrix(1, 108.0 / 611.0, -.25, .62, 92, 198));
-            plane.Freeze();
-            idle = new DrawingGroup();
-            using (DrawingContext d = idle.Open())
+            if(configured&&facesCat==catFacing&&showMouse==mouseVisible)return;
+            facesCat=catFacing;showMouse=mouseVisible;configured=true;keys.Clear();
+            var transform=new TransformGroup();
+            if(facesCat)transform.Children.Add(new RotateTransform(180,212,52));
+            transform.Children.Add(new MatrixTransform(showMouse?new Matrix(.82,.82*108/611,-.25,.78,174,202):new Matrix(1,108.0/611,-.25,.7,92,192)));
+            transform.Freeze();plane=transform;
+            light=new DrawingGroup();dark=new DrawingGroup();housingMask=new DrawingGroup();keysMask=new DrawingGroup();
+            using(var l=light.Open())using(var d=dark.Open())using(var h=housingMask.Open())using(var k=keysMask.Open())
             {
-                d.PushTransform(plane);
-                DrawHousing(d);
-                const double pitch = 18.3;
-                Row(d, 8, new string[] { "esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "−", "=", "⌫" },
-                    new int[] {27,49,50,51,52,53,54,55,56,57,48,189,187,8},
-                    new double[] {1,1,1,1,1,1,1,1,1,1,1,1,1,2});
-                Row(d, 8 + pitch, new string[] { "tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\" },
-                    new int[] {9,81,87,69,82,84,89,85,73,79,80,219,221,220},
-                    new double[] {1.5,1,1,1,1,1,1,1,1,1,1,1,1,1.5});
-                Row(d, 8 + pitch * 2, new string[] { "caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "enter" },
-                    new int[] {20,65,83,68,70,71,72,74,75,76,186,222,13},
-                    new double[] {1.75,1,1,1,1,1,1,1,1,1,1,1,2.25});
-                Row(d, 8 + pitch * 3, new string[] { "shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "shift" },
-                    new int[] {160,90,88,67,86,66,78,77,188,190,191,161},
-                    new double[] {2.25,1,1,1,1,1,1,1,1,1,1,2.75});
-                Row(d, 8 + pitch * 4, new string[] { "ctrl", "win", "alt", "", "alt", "fn", "menu", "ctrl" },
-                    new int[] {162,91,164,32,165,0,93,163},
-                    new double[] {1.25,1.25,1.25,6.25,1.25,1.25,1.25,1.25});
-                d.Pop();
+                l.PushTransform(plane);d.PushTransform(plane);h.PushTransform(plane);k.PushTransform(plane);
+                var outline=new RectangleGeometry(new Rect(0,0,424,104),8,8);outline.Freeze();
+                h.DrawGeometry(Brushes.White,null,outline);DrawCase(l,outline);DrawCase(d,outline);
+                const double pitch=18.3;
+                Row(l,d,k,8,new[]{"esc","1","2","3","4","5","6","7","8","9","0","−","=","⌫"},new[]{27,49,50,51,52,53,54,55,56,57,48,189,187,8},new double[]{1,1,1,1,1,1,1,1,1,1,1,1,1,2});
+                Row(l,d,k,8+pitch,new[]{"tab","Q","W","E","R","T","Y","U","I","O","P","[","]","\\"},new[]{9,81,87,69,82,84,89,85,73,79,80,219,221,220},new double[]{1.5,1,1,1,1,1,1,1,1,1,1,1,1,1.5});
+                Row(l,d,k,8+pitch*2,new[]{"caps","A","S","D","F","G","H","J","K","L",";","'","enter"},new[]{20,65,83,68,70,71,72,74,75,76,186,222,13},new double[]{1.75,1,1,1,1,1,1,1,1,1,1,1,2.25});
+                Row(l,d,k,8+pitch*3,new[]{"shift","Z","X","C","V","B","N","M",",",".","/","shift"},new[]{160,90,88,67,86,66,78,77,188,190,191,161},new double[]{2.25,1,1,1,1,1,1,1,1,1,1,2.75});
+                Row(l,d,k,8+pitch*4,new[]{"ctrl","win","alt","","alt","fn","menu","ctrl"},new[]{162,91,164,32,165,0,93,163},new double[]{1.25,1.25,1.25,6.25,1.25,1.25,1.25,1.25});
+                l.Pop();d.Pop();h.Pop();k.Pop();
+                if(showMouse){h.DrawGeometry(Brushes.White,null,mouse.HousingGeometry);k.DrawGeometry(Brushes.White,null,mouse.ButtonsGeometry);mouse.DrawOverlay(l,null,false,false);mouse.DrawOverlay(d,null,false,true);}
             }
-            idle.Freeze();
+            light.Freeze();dark.Freeze();housingMask.Freeze();keysMask.Freeze();
+            RebuildInkBitmaps();
+            byte[] housing=Mask(housingMask),caps=Mask(keysMask);
+            if(optics==null)optics=new KeyboardGlass(TextureWidth,TextureHeight,housing,caps);else optics.SetMasks(housing,caps);
+            fallbackVersion=-1;hasGlass=false;RefreshFallback(1.1,.98,1.35);
         }
-
-        internal void Draw(DrawingContext drawing, NativeInput input, bool enabled)
+        internal void SetPixelScale(double scale)
         {
-            drawing.DrawDrawing(idle);
-            if (!enabled || input == null) return;
-            for (int i = 0; i < keys.Count; i++)
+            scale=Math.Max(.2,Math.Min(4,scale));if(Math.Abs(pixelScale-scale)<.001)return;
+            pixelScale=scale;RebuildInkBitmaps();
+        }
+        private void RebuildInkBitmaps()
+        {
+            lightBitmap=Raster(light,Bounds,pixelScale);darkBitmap=Raster(dark,Bounds,pixelScale);
+            foreach(Key key in keys){key.LightBitmap=Raster(key.ActiveLight,key.Bounds,pixelScale);key.DarkBitmap=Raster(key.ActiveDark,key.Bounds,pixelScale);}
+        }
+        private static BitmapSource Raster(Drawing drawing,Rect bounds,double scale)
+        {
+            var visual=new DrawingVisual();using(var d=visual.RenderOpen())
+            {d.PushTransform(new MatrixTransform(new Matrix(scale,0,0,scale,-bounds.Left*scale,-bounds.Top*scale)));d.DrawDrawing(drawing);d.Pop();}
+            var bitmap=new RenderTargetBitmap(Math.Max(1,(int)Math.Ceiling(bounds.Width*scale)),Math.Max(1,(int)Math.Ceiling(bounds.Height*scale)),96,96,PixelFormats.Pbgra32);bitmap.Render(visual);bitmap.Freeze();return bitmap;
+        }
+        private static byte[] Mask(DrawingGroup shapes)
+        {
+            var visual=new DrawingVisual();
+            using(var d=visual.RenderOpen())
             {
-                Key key = keys[i];
-                double heat = key.Code == 0 ? 0 : input.Heat(key.Code);
-                if (key.Alternate != 0) heat = Math.Max(heat, input.Heat(key.Alternate));
-                DrawHeat(drawing, key, heat);
+                d.PushTransform(new MatrixTransform(new Matrix(TextureWidth/Bounds.Width,0,0,TextureHeight/Bounds.Height,-Bounds.X*TextureWidth/Bounds.Width,-Bounds.Y*TextureHeight/Bounds.Height)));
+                d.DrawDrawing(shapes);d.Pop();
             }
+            var bitmap=new RenderTargetBitmap(TextureWidth,TextureHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(visual);
+            byte[] pixels=new byte[TextureWidth*TextureHeight*4],alpha=new byte[TextureWidth*TextureHeight];bitmap.CopyPixels(pixels,TextureWidth*4,0);
+            for(int i=0;i<alpha.Length;i++)alpha[i]=pixels[i*4+3];return alpha;
         }
-
-        // Deterministic offscreen previews/tests; this never reads or injects input.
-        internal void DrawPreview(DrawingContext drawing, Func<int, double> heat, bool enabled)
+        internal void ClearBackdrop(){hasGlass=false;}
+        internal void RefreshFallback(double highlight,double clarity,double thickness)
         {
-            drawing.DrawDrawing(idle);
-            if (!enabled || heat == null) return;
-            for (int i = 0; i < keys.Count; i++)
+            optics.RenderFallback(highlight,clarity,thickness);
+            if(fallbackVersion==optics.FallbackVersion)return;
+            fallback.WritePixels(new Int32Rect(0,0,TextureWidth,TextureHeight),optics.FallbackPixels,TextureWidth*4,0);fallbackVersion=optics.FallbackVersion;
+        }
+        internal void RenderBackdrop(BackdropFrame source,Rect screenBounds,double refraction,double highlight,double clarity,double thickness)
+        {
+            double x=screenBounds.Left-source.ScreenBounds.Left,y=screenBounds.Top-source.ScreenBounds.Top;
+            if(!screenBounds.IntersectsWith(source.ScreenBounds)){x=(source.Width-screenBounds.Width)*.5;y=(source.Height-screenBounds.Height)*.5;}
+            optics.Render(source.Pixels,source.Width,source.Height,source.Stride,x,y,screenBounds.Width/TextureWidth,screenBounds.Height/TextureHeight,refraction,highlight,clarity,thickness);
+            glass.WritePixels(new Int32Rect(0,0,TextureWidth,TextureHeight),optics.Pixels,TextureWidth*4,0);hasGlass=true;
+        }
+        internal void Draw(DrawingContext drawing,NativeInput input,bool enabled){Draw(drawing,input,enabled,1,null);}
+        internal void Draw(DrawingContext drawing,NativeInput input,bool enabled,double opacity,Geometry visibleCapture)
+        {
+            drawing.DrawImage(fallback,Bounds);
+            if(hasGlass&&opacity>.001)
             {
-                Key key = keys[i];
-                double value = key.Code == 0 ? 0 : heat(key.Code);
-                if (key.Alternate != 0) value = Math.Max(value, heat(key.Alternate));
-                DrawHeat(drawing, key, value);
+                if(visibleCapture!=null)drawing.PushClip(visibleCapture);
+                drawing.PushOpacity(opacity);drawing.DrawImage(glass,Bounds);drawing.Pop();
+                if(visibleCapture!=null)drawing.Pop();
             }
-        }
-
-        internal bool TryGetKeyCenter(int virtualKey, out Point center)
-        {
-            if (virtualKey == 16) virtualKey = 160;
-            if (virtualKey == 17) virtualKey = 162;
-            if (virtualKey == 18) virtualKey = 164;
-            for (int i = 0; i < keys.Count; i++)
-                if (keys[i].Code == virtualKey || (virtualKey != 0 && keys[i].Alternate == virtualKey))
-                { center = keys[i].Center; return true; }
-            center = new Point(); return false;
-        }
-
-        private static void DrawHeat(DrawingContext drawing, Key key, double heat)
-        {
-            if (Double.IsNaN(heat) || heat <= .005) return;
-            drawing.PushOpacity(Math.Min(1, heat));
-            drawing.DrawDrawing(key.Active);
-            drawing.Pop();
-        }
-
-        private void Row(DrawingContext d, double y, string[] labels, int[] codes, double[] widths)
-        {
-            const double unit = 27.2;
-            double x = 8;
-            for (int i = 0; i < labels.Length; i++)
+            bool darkBackground=hasGlass&&optics.MeanBrightness<.35;
+            drawing.DrawImage(darkBackground?darkBitmap:lightBitmap,Bounds);
+            if(enabled&&input!=null)foreach(Key key in keys)
             {
-                double width = widths[i] * unit - 2.9;
-                Rect cap = new Rect(x, y, width, 14.7);
-                bool modifier = labels[i].Length > 1 && labels[i] != "⌫";
-                Geometry text = Label(labels[i], cap, modifier ? 10.8 : 14.5);
-                DrawCap(d, cap, modifier ? ModifierCap : Cap, Ink, CapBorder, text, false);
-                DrawingGroup active = new DrawingGroup();
-                using (DrawingContext a = active.Open())
-                {
-                    a.PushTransform(plane);
-                    DrawCap(a, cap, ActiveCap, ActiveInk, ActiveBorder, text, true);
-                    a.Pop();
-                }
-                active.Freeze();
-                keys.Add(new Key { Code = codes[i], Alternate = codes[i] == 91 ? 92 : 0,
-                    Center = plane.Transform(new Point(cap.X + cap.Width / 2, cap.Y + cap.Height / 2)), Active = active });
-                x += widths[i] * unit;
+                double heat=key.Code==0?0:input.Heat(key.Code);
+                if(key.Alternate!=0)heat=Math.Max(heat,input.Heat(key.Alternate));
+                DrawHeat(drawing,key,heat,darkBackground);
             }
+            if(showMouse)mouse.DrawFeedback(drawing,input,enabled);
         }
-
-        private static void DrawHousing(DrawingContext d)
+        internal bool TryGetKeyCenter(int virtualKey,out Point center)
         {
-            d.DrawRoundedRectangle(Brush(40, 11, 24, 43), null, new Rect(-3, 5, 430, 109), 10, 10);
-            d.DrawRoundedRectangle(Brush(30, 11, 24, 43), null, new Rect(-1, 3, 426, 108), 9, 9);
-            d.DrawRoundedRectangle(Brush(255, 143, 157, 176), Pen(Brush(255, 119, 136, 157), .8), new Rect(0, 3, 424, 104), 8, 8);
-            LinearGradientBrush metal = new LinearGradientBrush(Color.FromRgb(240, 244, 249), Color.FromRgb(208, 218, 231), 90);
-            metal.Freeze();
-            d.DrawRoundedRectangle(metal, Pen(Brush(255, 245, 248, 252), 1), new Rect(0, 0, 424, 104), 8, 8);
-            d.DrawRoundedRectangle(Brush(255, 181, 194, 210), null, new Rect(5, 5, 414, 94), 5, 5);
-            d.DrawRoundedRectangle(Brush(255, 66, 135, 219), null, new Rect(393, 100, 17, 1.8), .9, .9);
+            if(virtualKey==16)virtualKey=160;if(virtualKey==17)virtualKey=162;if(virtualKey==18)virtualKey=164;
+            foreach(Key key in keys)if(key.Code==virtualKey||(virtualKey!=0&&key.Alternate==virtualKey)){center=key.Center;return true;}
+            center=new Point();return false;
         }
-
-        private static void DrawCap(DrawingContext d, Rect cap, Brush fill, Brush text,
-            Pen border, Geometry label, bool active)
+        private static void DrawHeat(DrawingContext d,Key key,double heat,bool darkBackground)
         {
-            if (!active) d.DrawRoundedRectangle(KeySide, null, new Rect(cap.X, cap.Y + 1.7, cap.Width, cap.Height), 2.5, 2.5);
-            else
+            if(Double.IsNaN(heat)||heat<=.005)return;
+            d.PushOpacity(Math.Min(1,heat));d.DrawImage(darkBackground?key.DarkBitmap:key.LightBitmap,key.Bounds);d.Pop();
+        }
+        private void Row(DrawingContext l,DrawingContext d,DrawingContext mask,double y,string[] labels,int[] codes,double[] widths)
+        {
+            double x=8;
+            for(int i=0;i<labels.Length;i++)
             {
-                // Paint an opaque well over the cached raised key first, so the
-                // lowered legend never leaves a second copy of the idle glyph.
-                d.DrawRoundedRectangle(KeySide, null,
-                    new Rect(cap.X - .5, cap.Y - .5, cap.Width + 1, cap.Height + 2.7), 2.8, 2.8);
-                d.PushTransform(new TranslateTransform(0, 1.2));
+                Rect cap=new Rect(x,y,widths[i]*27.2-2.9,14.7);var shape=new RectangleGeometry(cap,2.5,2.5);shape.Freeze();
+                Geometry glyph=Label(labels[i],cap,labels[i].Length>1?11.3:15.5);
+                mask.DrawGeometry(Brushes.White,null,shape);DrawCap(l,cap,shape,glyph,false,false);DrawCap(d,cap,shape,glyph,true,false);
+                var al=new DrawingGroup();var ad=new DrawingGroup();
+                using(var a=al.Open()){a.PushTransform(plane);DrawCap(a,cap,shape,glyph,false,true);a.Pop();}
+                using(var a=ad.Open()){a.PushTransform(plane);DrawCap(a,cap,shape,glyph,true,true);a.Pop();}
+                al.Freeze();ad.Freeze();Rect keyBounds=plane.TransformBounds(cap);keyBounds.Inflate(3,3);
+                keys.Add(new Key {Code=codes[i],Alternate=codes[i]==91?92:0,Center=plane.Transform(new Point(cap.X+cap.Width/2,cap.Y+cap.Height/2)),Bounds=keyBounds,ActiveLight=al,ActiveDark=ad});
+                x+=widths[i]*27.2;
             }
-            d.DrawRoundedRectangle(fill, border, cap, 2.5, 2.5);
-            if (!active) d.DrawLine(Pen(Brush(230, 255, 255, 255), .8), new Point(cap.Left + 3, cap.Top + 1), new Point(cap.Right - 3, cap.Top + 1));
-            if (label != null) d.DrawGeometry(text, null, label);
-            else d.DrawRoundedRectangle(active ? ActiveInk : Brush(255, 173, 183, 198), null,
-                new Rect(cap.X + cap.Width * .35, cap.Y + cap.Height * .66, cap.Width * .3, .9), .4, .4);
-            if (active) d.Pop();
         }
-
-        private static Geometry Label(string label, Rect cap, double size)
+        private static void DrawCase(DrawingContext d,Geometry outline)
         {
-            if (label.Length == 0) return null;
-            FormattedText formatted = new FormattedText(label, CultureInfo.InvariantCulture,
-                FlowDirection.LeftToRight, Face, size, Ink, 1.0);
-            Geometry glyph = formatted.BuildGeometry(new Point());
-            Rect bounds = glyph.Bounds;
-            glyph.Transform = new TranslateTransform(cap.X + (cap.Width - bounds.Width) / 2 - bounds.X,
-                cap.Y + (cap.Height - bounds.Height) / 2 - bounds.Y - .15);
-            glyph.Freeze(); return glyph;
+            d.DrawGeometry(Brush(8,230,242,255),Pen(Brush(100,18,36,56),2),outline);
+            d.DrawGeometry(null,Pen(Brush(205,255,255,255),.9),outline);
+            d.DrawLine(Pen(Brush(125,255,255,255),1),new Point(12,2),new Point(410,2));
         }
-
-        private static Brush Brush(byte a, byte r, byte g, byte b)
-        { SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(a, r, g, b)); brush.Freeze(); return brush; }
-        private static Pen Pen(Brush brush, double thickness)
-        { Pen pen = new Pen(brush, thickness); pen.Freeze(); return pen; }
+        private static void DrawCap(DrawingContext d,Rect cap,Geometry shape,Geometry glyph,bool dark,bool active)
+        {
+            d.DrawGeometry(Brush(active?(byte)105:(byte)15,active?(byte)95:(byte)235,active?(byte)180:(byte)245,255),Pen(Brush(active?(byte)230:(byte)100,20,60,100),active?1.4:.8),shape);
+            d.DrawGeometry(null,Pen(Brush(190,255,255,255),.55),shape);
+            d.DrawLine(Pen(Brush(active?(byte)235:(byte)155,255,255,255),active?1.1:.7),new Point(cap.Left+2,cap.Top+1),new Point(cap.Right-2,cap.Top+1));
+            Brush ink=dark?Brush(255,247,251,255):Brush(255,22,38,53);
+            Pen halo=Pen(dark?Brush(230,13,27,43):Brush(235,255,255,255),1.65);
+            if(glyph!=null){d.DrawGeometry(null,halo,glyph);d.DrawGeometry(ink,null,glyph);}
+            else d.DrawRoundedRectangle(ink,halo,new Rect(cap.X+cap.Width*.35,cap.Y+cap.Height*.65,cap.Width*.3,.8),.4,.4);
+            if(active)d.DrawLine(Pen(Brush(240,83,172,255),1.5),new Point(cap.Left+3,cap.Bottom-1.2),new Point(cap.Right-3,cap.Bottom-1.2));
+        }
+        private static Geometry Label(string label,Rect cap,double size)
+        {
+            if(label.Length==0)return null;
+            var text=new FormattedText(label,CultureInfo.InvariantCulture,FlowDirection.LeftToRight,Face,size,Brushes.Black,1);
+            Geometry glyph=text.BuildGeometry(new Point());Rect bounds=glyph.Bounds;
+            glyph.Transform=new TranslateTransform(cap.X+(cap.Width-bounds.Width)/2-bounds.X,cap.Y+(cap.Height-bounds.Height)/2-bounds.Y-.15);glyph.Freeze();return glyph;
+        }
+        private static Brush Brush(byte a,byte r,byte g,byte b){var result=new SolidColorBrush(Color.FromArgb(a,r,g,b));result.Freeze();return result;}
+        private static Pen Pen(Brush brush,double width){var p=new Pen(brush,width);p.Freeze();return p;}
     }
 }
